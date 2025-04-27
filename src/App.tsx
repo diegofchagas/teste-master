@@ -1,4 +1,3 @@
-import logo from "./assets/bjjlink-logo.svg";
 import logo2 from "./assets/martial-arts-uniform-svgrepo-com.svg"
 import professor from "./assets/professor.jpg";
 
