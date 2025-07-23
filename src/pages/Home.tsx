@@ -22,19 +22,12 @@ export default function Home() {
         </p>
 
         {!isLoggedIn && (
-          <div style={{ 
-            marginTop: "20px", 
-            padding: "20px", 
-            backgroundColor: "rgba(85, 66, 246, 0.1)", 
-            borderRadius: "12px",
-            border: "1px solid rgba(85, 66, 246, 0.3)",
-            textAlign: "center"
-          }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", marginBottom: "10px" }}>
+          <div className="professor-area-box">
+            <div className="professor-area-header">
               <Shield size={24} color="#5542f6" />
-              <h3 style={{ margin: 0, color: "#5542f6", fontSize: "1.2rem" }}>Área do Professor</h3>
+              <h3>Área do Professor</h3>
             </div>
-            <p style={{ margin: "0 0 15px 0", color: "#a0aec0", fontSize: "14px" }}>
+            <p className="professor-area-desc">
               Acesse as funcionalidades administrativas para gerenciar seus alunos e mensalidades.
             </p>
             <Link to="/login" className="btn btn-primary">
@@ -44,13 +37,13 @@ export default function Home() {
           </div>
         )}
 
-        <button>Cadastre-se agora</button>
+        <button className="btn btn-primary" style={{marginTop: 16}}>Cadastre-se agora</button>
       </div>
 
-      <section>
+      <section className="features">
         <h2>Funcionalidades</h2>
 
-        <div className="features">
+        <div>
           <p>
             Aqui você encontrará uma visão reduzida de todas as ferramentas e
             funcionalidades do nossa plataforma de controle de academia de
@@ -174,7 +167,7 @@ export default function Home() {
             <label>Mensagem:</label>
             <textarea name="" id=""></textarea>
 
-            <button>enviar</button>
+            <button className="btn btn-primary">enviar</button>
           </form>
         </div>
       </div>
