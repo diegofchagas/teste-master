@@ -5,7 +5,7 @@ import {  SignOut } from "@phosphor-icons/react";
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from "react-router-dom";
 import AlunosMensalidade from "./pages/AlunosMensalidade";
 import Home from "./pages/Home";
-import CadastroAlunos from "./pages/CadastroAlunos";
+// import CadastroAlunos from "./pages/CadastroAlunos";
 // import ListaAlunos from "./pages/ListaAlunos";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
