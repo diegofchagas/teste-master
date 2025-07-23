@@ -31,9 +31,9 @@ function Navigation() {
           </li>
           {isLoggedIn && (
             <>
-              <li>
+              {/* <li>
                 <Link to="/cadastro-alunos">Cadastro de Alunos</Link>
-              </li>
+              </li> */}
               <li>
                 <Link to="/controle-mensalidades">Controle de Mensalidades</Link>
               </li>
@@ -84,14 +84,14 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
-        <Route 
+        {/* <Route 
           path="/cadastro-alunos" 
           element={
             <ProtectedRoute>
               <CadastroAlunos />
             </ProtectedRoute>
           } 
-        />
+        /> */}
         {/* <Route 
           path="/lista-alunos" 
           element={
