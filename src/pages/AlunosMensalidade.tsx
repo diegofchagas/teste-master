@@ -494,6 +494,8 @@ export default function AlunosMensalidade() {
                     <span
                       className="status-badge"
                       style={{
+                        display: "inline-block",
+                        fontSize: "12px",
                         backgroundColor: "#e3f2fd",
                         color: "#1976d2",
                       }}
