@@ -56,19 +56,79 @@ const faixasDisponiveis = [
   "Preta (10°grau) Venerável Mestre",
 ];
 
-const STORAGE_KEY = "alunos_mensalidade";
+const API_URL = "https://api-master-test.onrender.com/alunos";
 
-function loadAlunos(): AlunoMensalidade[] {
-  const data = localStorage.getItem(STORAGE_KEY);
-  return data ? JSON.parse(data) : [];
+async function fetchAlunos(): Promise<AlunoMensalidade[]> {
+  try {
+    const response = await fetch(API_URL);
+    if (!response.ok) {
+      throw new Error("Erro ao buscar alunos");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Erro ao carregar alunos:", error);
+    return [];
+  }
 }
 
-function saveAlunos(alunos: AlunoMensalidade[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(alunos));
+async function createAluno(
+  aluno: Omit<AlunoMensalidade, "id">
+): Promise<AlunoMensalidade | null> {
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(aluno),
+    });
+    if (!response.ok) {
+      throw new Error("Erro ao criar aluno");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Erro ao criar aluno:", error);
+    return null;
+  }
+}
+
+async function updateAluno(
+  id: string,
+  aluno: Partial<AlunoMensalidade>
+): Promise<AlunoMensalidade | null> {
+  try {
+    const response = await fetch(`${API_URL}/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(aluno),
+    });
+    if (!response.ok) {
+      throw new Error("Erro ao atualizar aluno");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Erro ao atualizar aluno:", error);
+    return null;
+  }
+}
+
+async function deleteAluno(id: string): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_URL}/${id}`, {
+      method: "DELETE",
+    });
+    return response.ok;
+  } catch (error) {
+    console.error("Erro ao deletar aluno:", error);
+    return false;
+  }
 }
 
 export default function AlunosMensalidade() {
-  const [alunos, setAlunos] = React.useState<AlunoMensalidade[]>(loadAlunos());
+  const [alunos, setAlunos] = React.useState<AlunoMensalidade[]>([]);
+  const [loading, setLoading] = React.useState(true);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [mesFiltro, setMesFiltro] = React.useState<string>("");
   const [novoAluno, setNovoAluno] = React.useState({
@@ -82,11 +142,20 @@ export default function AlunosMensalidade() {
     dataPagamento: "",
   });
 
+  // Carregar alunos da API
   React.useEffect(() => {
-    saveAlunos(alunos);
-  }, [alunos]);
+    async function loadData() {
+      setLoading(true);
+      const data = await fetchAlunos();
+      setAlunos(data);
+      setLoading(false);
+    }
+    loadData();
+  }, []);
 
-  function adicionarAluno(e: React.FormEvent) {
+  console.log("Alunos:", alunos);
+
+  async function adicionarAluno(e: React.FormEvent) {
     e.preventDefault();
     if (!novoAluno.nome || !novoAluno.email) return;
 
@@ -99,8 +168,7 @@ export default function AlunosMensalidade() {
       .toISOString()
       .split("T")[0];
 
-    const aluno: AlunoMensalidade = {
-      id: Date.now().toString(),
+    const alunoData = {
       nome: novoAluno.nome,
       email: novoAluno.email,
       telefone: novoAluno.telefone,
@@ -114,38 +182,50 @@ export default function AlunosMensalidade() {
       dataPagamento: novoAluno.dataPagamento || "",
     };
 
-    setAlunos([...alunos, aluno]);
-    setNovoAluno({
-      nome: "",
-      email: "",
-      telefone: "",
-      faixa: "Branca",
-      valor: 150,
-      valorAdicional: 0,
-      descricaoAdicional: "",
-      dataPagamento: "",
-    });
+    const novoAlunoCreated = await createAluno(alunoData);
+    if (novoAlunoCreated) {
+      setAlunos([...alunos, novoAlunoCreated]);
+      setNovoAluno({
+        nome: "",
+        email: "",
+        telefone: "",
+        faixa: "Branca",
+        valor: 150,
+        valorAdicional: 0,
+        descricaoAdicional: "",
+        dataPagamento: "",
+      });
+    } else {
+      alert("Erro ao adicionar aluno. Tente novamente.");
+    }
   }
 
-  function togglePagamento(id: string) {
-    setAlunos(
-      alunos.map((aluno) => {
-        if (aluno.id === id) {
-          const pagou = !aluno.pagou;
-          return {
-            ...aluno,
-            pagou,
-            dataPagamento: pagou ? new Date().toISOString().split("T")[0] : "",
-          };
-        }
-        return aluno;
-      })
-    );
+  async function togglePagamento(id: string) {
+    const aluno = alunos.find((a) => a.id === id);
+    if (!aluno) return;
+
+    const pagou = !aluno.pagou;
+    const dadosAtualizacao = {
+      pagou,
+      dataPagamento: pagou ? new Date().toISOString().split("T")[0] : "",
+    };
+
+    const alunoAtualizado = await updateAluno(id, dadosAtualizacao);
+    if (alunoAtualizado) {
+      setAlunos(alunos.map((a) => (a.id === id ? alunoAtualizado : a)));
+    } else {
+      alert("Erro ao atualizar status de pagamento. Tente novamente.");
+    }
   }
 
-  function removerAluno(id: string) {
+  async function removerAluno(id: string) {
     if (window.confirm("Tem certeza que deseja remover este aluno?")) {
-      setAlunos(alunos.filter((aluno) => aluno.id !== id));
+      const sucesso = await deleteAluno(id);
+      if (sucesso) {
+        setAlunos(alunos.filter((aluno) => aluno.id !== id));
+      } else {
+        alert("Erro ao remover aluno. Tente novamente.");
+      }
     }
   }
 
@@ -163,12 +243,13 @@ export default function AlunosMensalidade() {
   }
 
   // Filtro de busca + mês
+  // Código corrigido para tratar dados ausentes
   const alunosFiltrados = filtrarPorMes(
     alunos.filter(
       (aluno) =>
-        aluno.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        aluno.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        aluno.faixa.toLowerCase().includes(searchTerm.toLowerCase())
+        (aluno.nome?.toLowerCase() ?? "").includes(searchTerm.toLowerCase()) ||
+        (aluno.email?.toLowerCase() ?? "").includes(searchTerm.toLowerCase()) ||
+        (aluno.faixa?.toLowerCase() ?? "").includes(searchTerm.toLowerCase())
     ),
     mesFiltro
   );
@@ -201,6 +282,24 @@ export default function AlunosMensalidade() {
   )
     .sort()
     .reverse();
+
+  if (loading) {
+    return (
+      <div style={{ padding: "2rem", maxWidth: "1200px", margin: "0 auto" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "200px",
+            color: "#666",
+          }}
+        >
+          <div>Carregando dados...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mensalidades-container">
@@ -482,7 +581,7 @@ export default function AlunosMensalidade() {
                 <div key={aluno.id} className="aluno-row">
                   <div className="aluno-info">
                     <div className="aluno-avatar">
-                      {aluno.nome.charAt(0).toUpperCase()}
+                      {(aluno.nome?.charAt(0) ?? "").toUpperCase()}
                     </div>
                     <div className="aluno-details">
                       <h4>{aluno.nome}</h4>
@@ -506,7 +605,7 @@ export default function AlunosMensalidade() {
                   <div>
                     <div className="flex gap-1">
                       <CurrencyCircleDollar size={16} color="#666" />
-                      <span>R$ {aluno.valor.toFixed(2)}</span>
+                      <span>R$ {(aluno.valor ?? 0).toFixed(2)}</span>
                     </div>
                     {aluno.valorAdicional && aluno.valorAdicional > 0 && (
                       <div
